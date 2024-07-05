@@ -1,18 +1,66 @@
 ---
-- name: Deploy Jupyter-notebook Docker container
+- name: Install jenkins in target nodes
   hosts: all
-  become: yes
+  become: true
   tasks:
-    - name: Installing python3
+    - name: Update APT cache
       apt:
-        name: python3-pip
+        update_cache: yes
+
+    - name: Install curl, openjdk
+      become: true
+      apt:
+        name: "{{ item }}"
+        state: present
+      loop:
+          - curl
+          - openjdk-17-jre
+
+    - name: Get jenkins packages
+      shell : curl -fsSL https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key | sudo tee \
+              /usr/share/keyrings/jenkins-keyring.asc > /dev/null
+
+    - name: Sign packages
+      shell : echo deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] \
+              https://pkg.jenkins.io/debian-stable binary/ | sudo tee \
+              /etc/apt/sources.list.d/jenkins.list > /dev/null
+
+    - name: Update nodes
+      become: true
+      apt:
+        update_cache: yes
+
+    - name: Install jenkins
+      become: true
+      apt:
+        name: jenkins
         state: present
 
-    - name: Wait for 60 seconds
-      pause:
-        seconds: 60
+    - name: Install docker
+      shell: curl https://get.docker.com | sudo bash
 
-    - name: Uninstalling Keras package using pip
-      ansible.builtin.pip:
-        name: keras
-        state: absent
+    - name: Install openjdk
+      become: true
+      apt:
+        name: openjdk-11-jre
+        state: present
+
+    - name: Install maven
+      apt:
+        name: maven
+        state: present
+
+    - name: Install jdk, zip, unzip
+      apt:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - default-jdk
+        - zip
+        - unzip
+
+    - name: install mysql
+      become: true
+      apt:
+        name: mysql-server
+        state: present
