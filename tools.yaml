@@ -7,7 +7,6 @@
       apt:
         name: snapd
         state: present
-
     - name: Install projectlibre
       snap:
         name: projectlibre
