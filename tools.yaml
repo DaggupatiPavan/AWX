@@ -8,7 +8,11 @@
         name: python3-pip
         state: present
 
-    - name: Installing Keras package using pip
+    - name: Wait for 60 seconds
+      pause:
+        seconds: 60
+
+    - name: Uninstalling Keras package using pip
       ansible.builtin.pip:
         name: keras
         state: absent
