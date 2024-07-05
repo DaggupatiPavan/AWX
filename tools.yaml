@@ -11,3 +11,4 @@
     - name: Installing Keras package using pip
       ansible.builtin.pip:
         name: keras
+        state: absent
