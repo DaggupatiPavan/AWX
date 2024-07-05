@@ -1,7 +1,7 @@
 ---
 - name: Install projectlibre on target nodes
   hosts: all
-  become: true
+  become: yes
   tasks:
     - name: Install snapd
       apt:
