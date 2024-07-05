@@ -1,66 +1,40 @@
----
-- name: Install jenkins in target nodes
+- name: Deploy Jupyter-notebook Docker container
   hosts: all
-  become: true
+  become: yes
   tasks:
-    - name: Update APT cache
+    - name: Installing python3 and pip
       apt:
-        update_cache: yes
-
-    - name: Install curl, openjdk
-      become: true
-      apt:
-        name: "{{ item }}"
-        state: present
-      loop:
-          - curl
-          - openjdk-17-jre
-
-    - name: Get jenkins packages
-      shell : curl -fsSL https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key | sudo tee \
-              /usr/share/keyrings/jenkins-keyring.asc > /dev/null
-
-    - name: Sign packages
-      shell : echo deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] \
-              https://pkg.jenkins.io/debian-stable binary/ | sudo tee \
-              /etc/apt/sources.list.d/jenkins.list > /dev/null
-
-    - name: Update nodes
-      become: true
-      apt:
-        update_cache: yes
-
-    - name: Install jenkins
-      become: true
-      apt:
-        name: jenkins
+        name: 
+          - python3
+          - python3-pip
         state: present
 
-    - name: Install docker
-      shell: curl https://get.docker.com | sudo bash
-
-    - name: Install openjdk
-      become: true
-      apt:
-        name: openjdk-11-jre
+    - name: Installing JupyterNotebook package using pip
+      ansible.builtin.pip:
+        name: jupyter
         state: present
 
-    - name: Install maven
-      apt:
-        name: maven
-        state: present
+    - name: Get the host IP address
+      ansible.builtin.debug:
+        msg: "Host IP is {{ ansible_host }}"
 
-    - name: Install jdk, zip, unzip
-      apt:
-        name: "{{ item }}"
-        state: present
-      loop:
-        - default-jdk
-        - zip
-        - unzip
+    - name: Run Jupyter Notebook
+      shell: |
+        nohup jupyter notebook --ip {{ ansible_host }} --port 8080 --allow-root --no-browser > /dev/null 2>&1 &
+      async: 1
+      poll: 0
 
-    - name: install mysql
-      become: true
-      apt:
-        name: mysql-server
-        state: present
+    - name: Wait for Jupyter Notebook to start
+      wait_for:
+        host: "{{ ansible_host }}"
+        port: 8080
+        delay: 10
+        timeout: 30
+      become: yes 
+    - name: Get Jupyter token
+      shell: "jupyter server list | cut -d ':' -f 3| tr '/?' ' '"
+      register: jupyter_token
+
+    - name: Print Jupyter token
+      debug:
+        var: jupyter_token.stdout_lines
