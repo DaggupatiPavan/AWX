@@ -37,7 +37,9 @@
         state: present
 
     - name: Install docker
-      shell: curl https://get.docker.com | sudo bash
+      apt:
+        name: docker.io
+        state: present
 
     - name: Install openjdk
       become: true
