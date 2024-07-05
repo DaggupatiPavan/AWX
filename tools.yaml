@@ -36,11 +36,6 @@
         name: jenkins
         state: present
 
-    - name: Install docker
-      apt:
-        name: docker.io
-        state: present
-
     - name: Install openjdk
       become: true
       apt:
