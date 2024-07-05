@@ -1,13 +1,13 @@
 ---
-- name: Install projectlibre on target nodes
+- name: Deploy Jupyter-notebook Docker container
   hosts: all
   become: yes
   tasks:
-    - name: Install snapd
+    - name: Installing python3
       apt:
-        name: snapd
+        name: python3-pip
         state: present
-    - name: Install projectlibre
-      snap:
-        name: projectlibre
-        state: present
+
+    - name: Installing Keras package using pip
+      ansible.builtin.pip:
+        name: keras
