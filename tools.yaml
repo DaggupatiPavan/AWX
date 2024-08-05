@@ -7,15 +7,6 @@
       apt:
         update_cache: yes
 
-    - name: Install curl, openjdk
-      become: true
-      apt:
-        name: "{{ item }}"
-        state: present
-      loop:
-          - curl
-          - openjdk-17-jre
-
     - name: Update nodes
       become: true
       apt:
