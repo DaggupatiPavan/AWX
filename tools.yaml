@@ -43,15 +43,6 @@
         name: ansible
         state: present
 
-    - name: Install jdk, zip, unzip
-      apt:
-        name: "{{ item }}"
-        state: present
-      loop:
-        - default-jdk
-        - zip
-        - unzip
-
     - name: install mysql
       become: true
       apt:
