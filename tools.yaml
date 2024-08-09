@@ -12,12 +12,6 @@
       apt:
         update_cache: yes
 
-    - name: Install docker
-      become: true
-      apt:
-        name: docker.io
-        state: present
-
     - name: Install openjdk
       become: true
       apt:
