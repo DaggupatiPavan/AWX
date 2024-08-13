@@ -3,28 +3,43 @@
   hosts: all
   become: true
   tasks:
-    - name: Temporarily disable APT lock
+    - name: Ensure APT lock is handled gracefully
       ansible.builtin.shell: |
-        echo 'APT::Acquire::Retries "0";' > /etc/apt/apt.conf.d/99disable-lock
+        while fuser /var/lib/dpkg/lock >/dev/null 2>&1; do
+          echo "Waiting for APT lock...";
+          sleep 10;
+        done
       become: true
+      retries: 5
+      delay: 10
+      until: "'/var/lib/dpkg/lock' not in ansible_facts.packages"
 
     - name: Update APT cache
       apt:
         update_cache: yes
-      register: apt_cache_result
+      register: apt_update_result
       retries: 5
-      delay: 5
-      until: apt_cache_result is succeeded
+      delay: 10
+      until: apt_update_result is succeeded
 
     - name: Install OpenJDK, Maven, Ansible, and MySQL
-      ansible.builtin.shell: |
-        DEBIAN_FRONTEND=noninteractive apt-get install -y -o Dpkg::Options::="--force-confold" openjdk-11-jre maven ansible mysql-server
-      become: true
+      apt:
+        name:
+          - openjdk-11-jre
+          - maven
+          - ansible
+          - mysql-server
+        state: present
+        force: yes
+        dpkg_options:
+          - "force-confold"
       register: install_packages_result
       retries: 5
-      delay: 5
+      delay: 10
       until: install_packages_result is succeeded
 
-    - name: Re-enable APT lock
-      ansible.builtin.shell: rm -f /etc/apt/apt.conf.d/99disable-lock
+    - name: Clean up APT lock management script
+      ansible.builtin.file:
+        path: /etc/apt/apt.conf.d/99disable-lock
+        state: absent
       become: true
