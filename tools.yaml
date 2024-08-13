@@ -1,45 +1,80 @@
 ---
-- name: Install Jenkins and dependencies on target nodes
+- name: Perform Various System Operations
   hosts: all
   become: true
   tasks:
-    - name: Ensure APT lock is handled gracefully
-      ansible.builtin.shell: |
-        while fuser /var/lib/dpkg/lock >/dev/null 2>&1; do
-          echo "Waiting for APT lock...";
-          sleep 10;
-        done
-      become: true
-      retries: 5
-      delay: 10
-      until: "'/var/lib/dpkg/lock' not in ansible_facts.packages"
 
-    - name: Update APT cache
-      apt:
-        update_cache: yes
-      register: apt_update_result
-      retries: 5
-      delay: 10
-      until: apt_update_result is succeeded
+    # File Operations
+    - name: Copy configuration file
+      ansible.builtin.copy:
+        src: /path/to/local/config.conf
+        dest: /etc/myapp/config.conf
+        owner: root
+        group: root
+        mode: '0644'
 
-    - name: Install OpenJDK, Maven, Ansible, and MySQL
-      apt:
-        name:
-          - openjdk-11-jre
-          - maven
-          - ansible
-          - mysql-server
-        state: present
-        force: yes
-        dpkg_options:
-          - "force-confold"
-      register: install_packages_result
-      retries: 5
-      delay: 10
-      until: install_packages_result is succeeded
-
-    - name: Clean up APT lock management script
+    - name: Create a directory
       ansible.builtin.file:
-        path: /etc/apt/apt.conf.d/99disable-lock
+        path: /var/myapp
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+
+    - name: Set file permissions
+      ansible.builtin.file:
+        path: /etc/myapp/config.conf
+        mode: '0644'
+
+    # User and Group Management
+    - name: Create a new user
+      ansible.builtin.user:
+        name: newuser
+        state: present
+        shell: /bin/bash
+
+    - name: Add user to a group
+      ansible.builtin.user:
+        name: newuser
+        groups: sudo
+        append: yes
+
+    - name: Remove a user
+      ansible.builtin.user:
+        name: olduser
         state: absent
-      become: true
+
+    # Configuration Management
+    - name: Deploy application configuration
+      ansible.builtin.template:
+        src: /path/to/templates/app.conf.j2
+        dest: /etc/myapp/app.conf
+        owner: root
+        group: root
+        mode: '0644'
+
+    # System Monitoring and Reporting
+    - name: Gather system facts
+      ansible.builtin.setup:
+
+    - name: Report disk usage
+      ansible.builtin.shell: df -h
+      register: disk_usage
+
+    - name: Display disk usage
+      ansible.builtin.debug:
+        msg: "{{ disk_usage.stdout }}"
+
+    # Networking (Optional, if needed)
+    - name: Configure network interface
+      ansible.builtin.lineinfile:
+        path: /etc/network/interfaces
+        line: 'iface eth0 inet static'
+        create: yes
+
+    - name: Ensure firewall is configured
+      ansible.builtin.ufw:
+        rule: allow
+        name: 'Open port 80'
+        port: 80
+        state: enabled
