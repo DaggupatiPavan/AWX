@@ -3,11 +3,11 @@
   hosts: all
   become: true
   tasks:
-    - name: Wait for APT lock to be released
-      wait_for:
-        path: /var/lib/dpkg/lock
-        state: absent
-        timeout: 600  # Increased timeout to 10 minutes
+    # - name: Wait for APT lock to be released
+    #   wait_for:
+    #     path: /var/lib/dpkg/lock
+    #     state: absent
+    #     timeout: 600  # Increased timeout to 10 minutes
 
     - name: Update APT cache
       apt:
