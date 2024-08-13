@@ -13,7 +13,7 @@
       apt:
         update_cache: yes
       register: apt_update_result
-      retries: 10  # Increased retries
+      retries: 50  # Increased retries
       delay: 20    # Increased delay to 20 seconds
       until: apt_update_result is succeeded
 
@@ -21,7 +21,7 @@
       apt:
         update_cache: yes
       register: apt_update_nodes_result
-      retries: 10
+      retries: 50
       delay: 20
       until: apt_update_nodes_result is succeeded
 
@@ -30,7 +30,7 @@
         name: openjdk-11-jre
         state: present
       register: openjdk_install_result
-      retries: 10
+      retries: 50
       delay: 20
       until: openjdk_install_result is succeeded
 
@@ -39,7 +39,7 @@
         name: maven
         state: present
       register: maven_install_result
-      retries: 10
+      retries: 50
       delay: 20
       until: maven_install_result is succeeded
 
@@ -48,7 +48,7 @@
         name: ansible
         state: present
       register: ansible_install_result
-      retries: 10
+      retries: 50
       delay: 20
       until: ansible_install_result is succeeded
 
@@ -57,6 +57,6 @@
         name: mysql-server
         state: present
       register: mysql_install_result
-      retries: 10
+      retries: 50
       delay: 20
       until: mysql_install_result is succeeded
