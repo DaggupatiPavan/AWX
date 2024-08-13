@@ -1,54 +1,40 @@
 ---
-- name: Install Jenkins in target nodes
+- name: Remove Jenkins-related packages from target nodes
   hosts: all
   become: true
   tasks:
-    # - name: Wait for APT lock to be released
-    #   wait_for:
-    #     path: /var/lib/dpkg/lock
-    #     state: absent
-    #     timeout: 600  # Increased timeout to 10 minutes
-
-    - name: Update APT cache
-      apt:
-        update_cache: yes
-      register: apt_update_result
-      retries: 10  # Increased retries
-      delay: 20    # Increased delay to 20 seconds
-      until: apt_update_result is succeeded
-
-    - name: Install OpenJDK
+    - name: Remove OpenJDK
       apt:
         name: openjdk-11-jre
-        state: present
-      register: openjdk_install_result
+        state: absent
+      register: openjdk_remove_result
       retries: 10
       delay: 20
-      until: openjdk_install_result is succeeded
+      until: openjdk_remove_result is succeeded
 
-    - name: Install Maven
+    - name: Remove Maven
       apt:
         name: maven
-        state: present
-      register: maven_install_result
+        state: absent
+      register: maven_remove_result
       retries: 10
       delay: 20
-      until: maven_install_result is succeeded
+      until: maven_remove_result is succeeded
 
-    - name: Install Ansible
+    - name: Remove Ansible
       apt:
         name: ansible
-        state: present
-      register: ansible_install_result
+        state: absent
+      register: ansible_remove_result
       retries: 10
       delay: 20
-      until: ansible_install_result is succeeded
+      until: ansible_remove_result is succeeded
 
-    - name: Install MySQL
+    - name: Remove MySQL
       apt:
         name: mysql-server
-        state: present
-      register: mysql_install_result
+        state: absent
+      register: mysql_remove_result
       retries: 10
       delay: 20
-      until: mysql_install_result is succeeded
+      until: mysql_remove_result is succeeded
