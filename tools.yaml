@@ -1,54 +1,99 @@
+# ---
+# - name: Install Jenkins in target nodes
+#   hosts: all
+#   become: true
+#   tasks:
+#     - name: Wait for APT lock to be released
+#       wait_for:
+#         path: /var/lib/dpkg/lock-frontend
+#         state: absent
+#         timeout: 500
+
+#     - name: Update APT cache
+#       apt:
+#         update_cache: yes
+#       # register: apt_update_result
+#       # retries: 10  # Increased retries
+#       # delay: 20    # Increased delay to 20 seconds
+#       # until: apt_update_result is succeeded
+
+#     - name: Install OpenJDK
+#       apt:
+#         name: openjdk-11-jre
+#         state: present
+#       # register: openjdk_install_result
+#       # retries: 10
+#       # delay: 20
+#       # until: openjdk_install_result is succeeded
+
+#     - name: Install Maven
+#       apt:
+#         name: maven
+#         state: present
+#       # register: maven_install_result
+#       # retries: 10
+#       # delay: 20
+#       # until: maven_install_result is succeeded
+
+#     - name: Install Ansible
+#       apt:
+#         name: ansible
+#         state: present
+#       # register: ansible_install_result
+#       # retries: 10
+#       # delay: 20
+#       # until: ansible_install_result is succeeded
+
+#     - name: Install MySQL
+#       apt:
+#         name: mysql-server
+#         state: present
+#       # register: mysql_install_result
+#       # retries: 10
+#       # delay: 20
+#       # until: mysql_install_result is succeeded
 ---
 - name: Install Jenkins in target nodes
   hosts: all
   become: true
   tasks:
+
+    - name: Check for APT lock file
+      stat:
+        path: /var/lib/dpkg/lock-frontend
+      register: apt_lock
+
+    - name: Kill any existing APT processes if lock is present
+      command: kill -9 {{ item }}
+      with_items: "{{ ansible_facts.processes | selectattr('name', 'match', 'apt') | map(attribute='pid') | list }}"
+      when: apt_lock.stat.exists
+
     - name: Wait for APT lock to be released
       wait_for:
         path: /var/lib/dpkg/lock-frontend
         state: absent
-        timeout: 500
+        timeout: 60  # Adjust the timeout as needed
 
     - name: Update APT cache
       apt:
         update_cache: yes
-      # register: apt_update_result
-      # retries: 10  # Increased retries
-      # delay: 20    # Increased delay to 20 seconds
-      # until: apt_update_result is succeeded
 
     - name: Install OpenJDK
       apt:
         name: openjdk-11-jre
         state: present
-      # register: openjdk_install_result
-      # retries: 10
-      # delay: 20
-      # until: openjdk_install_result is succeeded
 
     - name: Install Maven
       apt:
         name: maven
         state: present
-      # register: maven_install_result
-      # retries: 10
-      # delay: 20
-      # until: maven_install_result is succeeded
 
     - name: Install Ansible
       apt:
         name: ansible
         state: present
-      # register: ansible_install_result
-      # retries: 10
-      # delay: 20
-      # until: ansible_install_result is succeeded
 
     - name: Install MySQL
       apt:
         name: mysql-server
         state: present
-      # register: mysql_install_result
-      # retries: 10
-      # delay: 20
-      # until: mysql_install_result is succeeded
