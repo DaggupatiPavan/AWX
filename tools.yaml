@@ -74,17 +74,22 @@
       shell: |
         if [ "{{ apt_lock_status.stdout }}" == "locked" ]; then
           for pid in $(pgrep -f 'apt'); do
+            echo "Killing process $pid"
             kill -9 $pid
           done
         fi
       become: true
       changed_when: false
+      retries: 3
+      delay: 10
 
     - name: Wait for APT lock to be released
       wait_for:
         path: /var/lib/dpkg/lock-frontend
         state: absent
-        timeout: 60  # Adjust the timeout as needed
+        timeout: 300  # Increase timeout if necessary
+      retries: 5
+      delay: 30
 
     - name: Update APT cache
       apt:
@@ -109,6 +114,7 @@
       apt:
         name: mysql-server
         state: present
+
 
 
 
