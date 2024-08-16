@@ -52,21 +52,33 @@
 #       # retries: 10
 #       # delay: 20
 #       # until: mysql_install_result is succeeded
+
+
 ---
 - name: Install Jenkins in target nodes
   hosts: all
   become: true
   tasks:
 
-    - name: Check for APT lock file
-      stat:
-        path: /var/lib/dpkg/lock-frontend
-      register: apt_lock
+    - name: Check if APT is locked
+      shell: |
+        if [ -e /var/lib/dpkg/lock-frontend ]; then
+          echo "locked"
+        else
+          echo "not_locked"
+        fi
+      register: apt_lock_status
+      changed_when: false
 
-    - name: Kill any existing APT processes if lock is present
-      command: kill -9 {{ item }}
-      with_items: "{{ ansible_facts.processes | selectattr('name', 'match', 'apt') | map(attribute='pid') | list }}"
-      when: apt_lock.stat.exists
+    - name: Kill existing APT processes if locked
+      shell: |
+        if [ "{{ apt_lock_status.stdout }}" == "locked" ]; then
+          for pid in $(pgrep -f 'apt'); do
+            kill -9 $pid
+          done
+        fi
+      become: true
+      changed_when: false
 
     - name: Wait for APT lock to be released
       wait_for:
@@ -97,3 +109,6 @@
       apt:
         name: mysql-server
         state: present
+
+
+
